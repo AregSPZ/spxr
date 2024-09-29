@@ -26,24 +26,35 @@ def compare_classifiers(X, y, metrics, models=[
     X: features
     y: target variable
     models: list of classifiers to evaluate
-    metrics: list of metrics to evaluate the classifiers"""
+    metrics: list of metrics to evaluate the classifiers (strings)"""
 
 
     for model in models:
         model_name = model.__class__.__name__
         y_pred = cross_val_predict(model, X, y, cv=cv) # get predictions using cross_val_predict
-        results = {metric.__name__: metric(y, y_pred) for metric in metrics if callable(metric)}
-        
-        # Calculate precision-recall AUC if specified
-        if 'pr_auc_score' in [metric.__name__ for metric in metrics if callable(metric)]:
-            precision, recall, _ = precision_recall_curve(y, y_pred)
-            pr_auc_score = auc(recall, precision)
-            results['pr_auc_score'] = pr_auc_score
-        
-        results_str = ', '.join([f'{name}={score}' for name, score in results.items()]) # format the results
-        print(f'{model_name}: {results_str}')
+        print(f'{model_name}:\n\n')
+        for metric in metrics:
+            if metric == 'f1':
+                score = f1_score(y, y_pred)
+            elif metric == 'precision':
+                score = precision_score(y, y_pred)
+            elif metric == 'recall':
+                score = recall_score(y, y_pred)
+            elif metric == 'classification_report':
+                score = classification_report(y, y_pred)
+            elif metric == 'confusion_matrix':
+                score = confusion_matrix(y, y_pred)
+            elif metric == 'accuracy':
+                score = accuracy_score(y, y_pred)
+            elif metric == 'roc_auc':
+                score = roc_auc_score(y, y_pred)
+            elif metric == 'pr_auc':
+                precision, recall, _ = precision_recall_curve(y, y_pred)
+                score = auc(recall, precision)
+            print(f'{metric.title()}: {score}')
+        print('\n\n')
 
-
+            
 def rmse(y_true, y_pred): # the metric we will use to evaluate the regressors
     return np.sqrt(mean_squared_error(y_true, y_pred))
 
@@ -58,9 +69,7 @@ def compare_regressors(X, y, models=
     ExtraTreesRegressor(random_state=42),
     RandomForestRegressor(random_state=42),
     AdaBoostRegressor(random_state=42),
-    GradientBoostingRegressor(random_state=42),
-    ],
-    cv=3):
+    GradientBoostingRegressor(random_state=42)], cv=3):
 
     """Evaluate the performance of the most prominent Scikit-learn regressors using cross_val_predict and RMSE
     X: features
