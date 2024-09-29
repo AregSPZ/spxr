@@ -1,1 +1,3 @@
 build/
+dist/
+spxr.egg-info/
