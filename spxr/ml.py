@@ -10,10 +10,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import PolynomialFeatures
 
 
-
-
-
-def compare_classifiers(X, y, models=[
+def compare_classifiers(X, y, metrics, models=[
     LogisticRegression(random_state=42),
     RidgeClassifier(random_state=42),
     SGDClassifier(random_state=42),
@@ -22,8 +19,7 @@ def compare_classifiers(X, y, models=[
     ExtraTreesClassifier(random_state=42),
     RandomForestClassifier(random_state=42),
     AdaBoostClassifier(random_state=42),
-    GradientBoostingClassifier(random_state=42),
-    ], metrics=['classification_report'], cv=3):
+    GradientBoostingClassifier(random_state=42)], cv=3):
 
     """Compare the performance of the most prominent Scikit-learn classifiers using cross_val_predict and specified metrics.
     This function is designed to determine which models should be further tuned and optimized.
@@ -34,12 +30,12 @@ def compare_classifiers(X, y, models=[
 
 
     for model in models:
-        model_name = repr(model)
+        model_name = model.__class__.__name__
         y_pred = cross_val_predict(model, X, y, cv=cv) # get predictions using cross_val_predict
-        results = {metric.__name__: metric(y, y_pred) for metric in metrics}
+        results = {metric.__name__: metric(y, y_pred) for metric in metrics if callable(metric)}
         
         # Calculate precision-recall AUC if specified
-        if 'pr_auc_score' in [metric.__name__ for metric in metrics]:
+        if 'pr_auc_score' in [metric.__name__ for metric in metrics if callable(metric)]:
             precision, recall, _ = precision_recall_curve(y, y_pred)
             pr_auc_score = auc(recall, precision)
             results['pr_auc_score'] = pr_auc_score
@@ -72,7 +68,7 @@ def compare_regressors(X, y, models=
     models: list of regressors to evaluate"""
 
     for model in models:
-        model_name = repr(model)
+        model_name = model.__class__.__name__
         y_pred = cross_val_predict(model, X, y, cv=cv)
         score = rmse(y, y_pred)
         print(f'{model_name}: RMSE = {score}')
