@@ -10,7 +10,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import PolynomialFeatures
 
 
-def compare_classifiers(X, y, metrics, models=[
+def compare_classifiers(X, y, models=[
     LogisticRegression(random_state=42),
     RidgeClassifier(random_state=42),
     SGDClassifier(random_state=42),
@@ -19,7 +19,8 @@ def compare_classifiers(X, y, metrics, models=[
     ExtraTreesClassifier(random_state=42),
     RandomForestClassifier(random_state=42),
     AdaBoostClassifier(random_state=42),
-    GradientBoostingClassifier(random_state=42)], cv=3):
+    GradientBoostingClassifier(random_state=42)], 
+    metrics=['accuracy', 'confusion_matrix', 'precision', 'recall', 'f1', 'classification_report', 'pr_auc', 'roc_auc'], cv=3):
 
     """Compare the performance of the most prominent Scikit-learn classifiers using cross_val_predict and specified metrics.
     This function is designed to determine which models should be further tuned and optimized.
@@ -83,3 +84,25 @@ def compare_regressors(X, y, models=
         y_pred = cross_val_predict(model, X, y, cv=cv)
         score = rmse(y, y_pred)
         print(f'{model_name}: RMSE = {score}')
+
+
+
+def columns_to_drop_clf(model, X, y, f1, cv=3):
+    """
+    drop each column one by one and see the effect on the model's performance
+    model - the classifier model to evaluate
+    X - a dataset (DataFrame) 
+    f1 - threshold for the f1 score, typically the actual current f1 score of the model
+    returns a list of columns to delete which have a negative effect on the model's performance
+    """
+    to_delete = []
+    for col in X.columns:
+        
+        X_copy = X.copy()
+        X_copy = X_copy.drop(col, axis=1)
+        y_train_pred = cross_val_predict(model, X_copy, y, cv=cv)
+        print(f'Column: {col}')
+        print(f'Classification Report:\n {classification_report(y, y_train_pred)}')
+        if f1_score(y, y_train_pred) >= f1:
+            to_delete.append(col)
+    print(to_delete)
