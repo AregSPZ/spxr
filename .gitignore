@@ -1,3 +1,5 @@
 build/
 dist/
 spxr.egg-info/
+spxr/__pycache__/
+spxr/tests/

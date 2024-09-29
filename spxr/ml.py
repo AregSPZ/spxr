@@ -6,7 +6,8 @@ from xgboost import XGBRegressor, XGBClassifier
 from sklearn.svm import LinearSVC, SVC, LinearSVR, SVR
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import mean_squared_error, f1_score, precision_score, recall_score, classification_report, confusion_matrix, accuracy_score, roc_auc_score, precision_recall_curve, auc
-from sklearn.preprocessing import make_pipeline, PolynomialFeatures
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import PolynomialFeatures
 
 
 
@@ -24,7 +25,8 @@ def compare_classifiers(X, y, models=[
     GradientBoostingClassifier(random_state=42),
     ], metrics=['classification_report'], cv=3):
 
-    """Compare the performance of the most prominent Scikit-learn classifiers using cross_val_predict and specified metrics
+    """Compare the performance of the most prominent Scikit-learn classifiers using cross_val_predict and specified metrics.
+    This function is designed to determine which models should be further tuned and optimized.
     X: features
     y: target variable
     models: list of classifiers to evaluate
