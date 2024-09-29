@@ -5,13 +5,17 @@ from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, A
 from xgboost import XGBRegressor, XGBClassifier
 from sklearn.svm import LinearSVC, SVC, LinearSVR, SVR
 from sklearn.model_selection import cross_val_predict
-from sklearn.metrics import mean_squared_error, f1_score, precision_score, recall_score
+from sklearn.metrics import mean_squared_error, f1_score, precision_score, recall_score, classification_report, confusion_matrix, accuracy_score, roc_auc_score, auc, precision_recall_curve, average_precision_score, roc_auc_score
 
 
 
 
-def compare_classifiers(X, y, svm = False):
-    """Compare the performance of the most prominent Scikit-learn classifiers using cross_val_predict, precision, recall and f1 score"""
+def compare_classifiers(X, y, metrics, svm=False):
+    """Compare the performance of the most prominent Scikit-learn classifiers using cross_val_predict and specified metrics
+    X: features
+    y: target variable
+    metrics: list of metrics to evaluate the classifiers
+    svm: boolean, whether to include SVM classifiers"""
 
     classifiers = [
     LogisticRegression(random_state=42),
@@ -28,21 +32,19 @@ def compare_classifiers(X, y, svm = False):
         classifiers.append(SVC(kernel='poly'))
         classifiers.append(SVC(kernel='rbf'))   
 
-
     for model in classifiers:
         model_name = repr(model)
-        y_pred = cross_val_predict(model, X, y, cv=10)
-        f1 = f1_score(y, y_pred)
-        precision = precision_score(y, y_pred)
-        recall = recall_score(y, y_pred)
-        print(f'{model_name}: F1={f1}, Precision={precision}, Recall={recall}')
+        y_pred = cross_val_predict(model, X, y, cv=3) # get predictions using cross_val_predict
+        results = {metric.__name__: metric(y, y_pred) for metric in metrics}
+        results_str = ', '.join([f'{name}={score}' for name, score in results.items()]) # format the results
+        print(f'{model_name}: {results_str}')
 
 
 def rmse(y_true, y_pred): # the metric we will use to evaluate the regressors
     return np.sqrt(mean_squared_error(y_true, y_pred))
 
 
-def evaluate_regressors(X, y, svm = False):
+def compare_regressors(X, y, svm = False):
     """Evaluate the performance of the most prominent Scikit-learn regressors using cross_val_predict and RMSE"""
 
     regressors = [
@@ -60,11 +62,13 @@ def evaluate_regressors(X, y, svm = False):
 
     if svm: 
         regressors.append(LinearSVR())
-        regressors.append(SVR())
+        regressors.append(SVR(kernel='linear'))
+        regressors.append(SVR(kernel='poly'))
+        regressors.append(SVR(kernel='rbf'))
 
 
     for model in regressors:
         model_name = repr(model)
-        y_pred = cross_val_predict(model, X, y, cv=10)
+        y_pred = cross_val_predict(model, X, y, cv=3)
         score = rmse(y, y_pred)
         print(f'{model_name}: RMSE = {score}')
