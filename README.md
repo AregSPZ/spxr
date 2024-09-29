@@ -1,1 +1,1 @@
-# a package where i store my custom functions
+# A package where i store my custom functions
