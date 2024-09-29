@@ -87,14 +87,15 @@ def compare_regressors(X, y, models=
 
 
 
-def columns_to_drop_clf(model, X, y, f1, cv=3):
+def columns_to_drop_clf(model, X, y, cv=3):
+    
     """
     drop each column one by one and see the effect on the model's performance
     model - the classifier model to evaluate
     X - a dataset (DataFrame) 
-    f1 - threshold for the f1 score, typically the actual current f1 score of the model
     returns a list of columns to delete which have a negative effect on the model's performance
     """
+    f1 = f1_score(y, cross_val_predict(model, X, y, cv=cv))
     to_delete = []
     for col in X.columns:
         
