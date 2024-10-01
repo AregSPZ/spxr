@@ -4,3 +4,4 @@ spxr.egg-info/
 spxr/__pycache__/
 spxr/tests/
 api_key.txt
+.pytest_cache/
