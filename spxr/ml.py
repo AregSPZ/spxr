@@ -99,7 +99,7 @@ def compare_regressors(X, y, models=None, cv=3):
 
 
 
-def columns_to_drop_clf(model, X, y, cv=3, average='binary'):
+def features_to_drop_clf(model, X, y, cv=3, average='binary'):
     """
     Drop each column one by one and see the effect on the model's performance.
     
@@ -111,11 +111,11 @@ def columns_to_drop_clf(model, X, y, cv=3, average='binary'):
     average - the type of averaging performed on the data (default is 'binary')
     
     Returns:
-    A list of columns to delete which have a negative effect on the model's performance.
+    A list of features to remove which have a negative effect on the model's performance.
     """
-    # Calculate the initial F1 score with all columns
+    # Calculate the initial F1 score with all features
     initial_f1 = f1_score(y, cross_val_predict(model, X, y, cv=cv), average=average)
-    to_delete = []
+    to_remove = []
     
     for col in X.columns:
         # Drop the current column
@@ -124,7 +124,7 @@ def columns_to_drop_clf(model, X, y, cv=3, average='binary'):
         # Perform cross-validation prediction
         y_pred = cross_val_predict(model, X_copy, y, cv=cv)
         
-        # Calculate the F1 score without the current column
+        # Calculate the F1 score without the current feature
         current_f1 = f1_score(y, y_pred, average=average)
         
         # Print the classification report for debugging
@@ -133,12 +133,52 @@ def columns_to_drop_clf(model, X, y, cv=3, average='binary'):
         
         # If the F1 score without the column is greater than or equal to the initial F1 score, mark the column for deletion
         if current_f1 >= initial_f1:
-            to_delete.append(col)
+            to_remove.append(col)
     
-    print(f'Columns to delete: {to_delete}')
+    print(f'Features to remove: {to_remove}')
     
-    # Evaluate the model's performance after removing all identified columns
-    X_reduced = X.drop(columns=to_delete)
+    # Evaluate the model's performance after removing all identified features
+    X_reduced = X.drop(features=to_remove)
     final_f1 = f1_score(y, cross_val_predict(model, X_reduced.to_numpy(), y, cv=cv), average=average)
     print(f'Initial F1 Score: {initial_f1}')
-    print(f'Final F1 Score after dropping columns: {final_f1}')
+    print(f'Final F1 Score after dropping features: {final_f1}')
+
+
+def features_to_drop_reg(model, X, y, cv=3):
+    """
+    Drop each column one by one and see the effect on the model's performance.
+    
+    Parameters:
+    model - the regressor model to evaluate
+    X - a dataset (DataFrame)
+    y - target variable
+    cv - number of cross-validation folds (default is 3)
+    
+    Returns:
+    A list of features to remove which have a negative effect on the model's performance.
+    """
+    # Calculate the initial RMSE with all features
+    initial_rmse = rmse(y, cross_val_predict(model, X, y, cv=cv))
+    to_remove = []
+    
+    for col in X.columns:
+        # Drop the current column
+        X_copy = X.drop(col, axis=1)
+        
+        # Perform cross-validation prediction
+        y_pred = cross_val_predict(model, X_copy, y, cv=cv)
+        
+        # Calculate the RMSE without the current feature
+        current_rmse = rmse(y, y_pred)
+        
+        # If the RMSE without the column is greater than or equal to the initial RMSE, mark the column for deletion
+        if current_rmse >= initial_rmse:
+            to_remove.append(col)
+    
+    print(f'Features to remove: {to_remove}')
+    
+    # Evaluate the model's performance after removing all identified features
+    X_reduced = X.drop(features=to_remove)
+    final_rmse = rmse(y, cross_val_predict(model, X_reduced.to_numpy(), y, cv=cv))
+    print(f'Initial RMSE: {initial_rmse}')
+    print(f'Final RMSE after dropping features: {final_rmse}')
