@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from sklearn.linear_model import LinearRegression, ElasticNet, SGDRegressor, LogisticRegression, SGDClassifier, ElasticNet, Ridge, Lasso, RidgeClassifier, RidgeCV, LassoCV, LogisticRegressionCV, ElasticNetCV, RidgeClassifierCV
 from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, AdaBoostRegressor, ExtraTreesRegressor, HistGradientBoostingRegressor, RandomForestClassifier, ExtraTreesClassifier, GradientBoostingClassifier, AdaBoostClassifier, HistGradientBoostingClassifier 
@@ -113,13 +114,22 @@ def features_to_drop_clf(model, X, y, cv=3, average='binary'):
     Returns:
     A list of features to remove which have a negative effect on the model's performance.
     """
+
+    # Check if X is a DataFrame
+    if not isinstance(X, pd.DataFrame):
+        raise TypeError("X must be a pandas DataFrame")
+    
+    # Convert DataFrame to NumPy array
+    X_np = X.to_numpy()
+    columns = X.columns
+    
     # Calculate the initial F1 score with all features
-    initial_f1 = f1_score(y, cross_val_predict(model, X, y, cv=cv), average=average)
+    initial_f1 = f1_score(y, cross_val_predict(model, X_np, y, cv=cv), average=average)
     to_remove = []
     
-    for col in X.columns:
+    for i, col in enumerate(columns):
         # Drop the current column
-        X_copy = X.drop(col, axis=1)
+        X_copy = np.delete(X_np, i, axis=1)
         
         # Perform cross-validation prediction
         y_pred = cross_val_predict(model, X_copy, y, cv=cv)
@@ -138,10 +148,11 @@ def features_to_drop_clf(model, X, y, cv=3, average='binary'):
     print(f'Features to remove: {to_remove}')
     
     # Evaluate the model's performance after removing all identified features
-    X_reduced = X.drop(features=to_remove)
-    final_f1 = f1_score(y, cross_val_predict(model, X_reduced.to_numpy(), y, cv=cv), average=average)
+    X_reduced = X.drop(columns=to_remove).to_numpy()
+    final_f1 = f1_score(y, cross_val_predict(model, X_reduced, y, cv=cv), average=average)
     print(f'Initial F1 Score: {initial_f1}')
     print(f'Final F1 Score after dropping features: {final_f1}')
+    return to_remove
 
 
 def features_to_drop_reg(model, X, y, cv=3):
@@ -157,13 +168,22 @@ def features_to_drop_reg(model, X, y, cv=3):
     Returns:
     A list of features to remove which have a negative effect on the model's performance.
     """
+
+    # Check if X is a DataFrame
+    if not isinstance(X, pd.DataFrame):
+        raise TypeError("X must be a pandas DataFrame")
+    
+    # Convert DataFrame to NumPy array
+    X_np = X.to_numpy()
+    columns = X.columns
+    
     # Calculate the initial RMSE with all features
-    initial_rmse = rmse(y, cross_val_predict(model, X, y, cv=cv))
+    initial_rmse = rmse(y, cross_val_predict(model, X_np, y, cv=cv))
     to_remove = []
     
-    for col in X.columns:
+    for i, col in enumerate(columns):
         # Drop the current column
-        X_copy = X.drop(col, axis=1)
+        X_copy = np.delete(X_np, i, axis=1)
         
         # Perform cross-validation prediction
         y_pred = cross_val_predict(model, X_copy, y, cv=cv)
@@ -178,7 +198,8 @@ def features_to_drop_reg(model, X, y, cv=3):
     print(f'Features to remove: {to_remove}')
     
     # Evaluate the model's performance after removing all identified features
-    X_reduced = X.drop(features=to_remove)
-    final_rmse = rmse(y, cross_val_predict(model, X_reduced.to_numpy(), y, cv=cv))
+    X_reduced = X.drop(columns=to_remove).to_numpy()
+    final_rmse = rmse(y, cross_val_predict(model, X_reduced, y, cv=cv))
     print(f'Initial RMSE: {initial_rmse}')
     print(f'Final RMSE after dropping features: {final_rmse}')
+    return to_remove
