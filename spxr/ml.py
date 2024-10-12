@@ -61,10 +61,11 @@ def compare_classifiers(X, y, models=None, metrics=None, average='weighted', cv=
             elif metric == 'accuracy':
                 score = accuracy_score(y, y_pred)
             elif metric == 'roc_auc':
+                y_pred_proba = cross_val_predict(model, X, y, cv=cv, method='predict_proba')
                 if len(set(y)) > 2:  # multiclass case
-                    score = roc_auc_score(y, y_pred, average=average, multi_class='ovr')
+                    score = roc_auc_score(y, y_pred_proba, average=average, multi_class='ovr')
                 else:
-                    score = roc_auc_score(y, y_pred)
+                    score = roc_auc_score(y, y_pred_proba[:, 1], average=average)
             elif metric == 'pr_auc':
                 if len(set(y)) > 2:  # multiclass case
                     precision = dict()
@@ -77,6 +78,9 @@ def compare_classifiers(X, y, models=None, metrics=None, average='weighted', cv=
                 else:
                     precision, recall, _ = precision_recall_curve(y, y_pred)
                     score = auc(recall, precision)
+            else:
+                raise ValueError(f"Unsupported metric: {metric}")
+            
             print(f'\n{metric.title()}:\n {score}')
         print('\n')
 
