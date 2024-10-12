@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='spxr',
-    version='0.1.13',
+    version='0.1.14',
     author='Areg Sargsyan',
     author_email='quant0027@gmail.com',
     description='Custom functions for repetitive tasks',
