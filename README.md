@@ -1,3 +1,3 @@
 # SPXR
 
-A package where i store my custom functions for repetitive tasks.
+This package includes utilities to automate common ML workflows like comparing the performance of different models and performing feature selection.
