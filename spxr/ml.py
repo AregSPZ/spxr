@@ -13,7 +13,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import PolynomialFeatures
 
 
-def compare_classifiers(X, y, models=None, metrics=None, cv=3):
+def compare_classifiers(X, y, models=None, metrics=None, average='weighted', cv=3):
 
     """Compare the performance of the most prominent Scikit-learn classifiers using cross_val_predict and specified metrics.
     This function is designed to determine which models should be further tuned and optimized.
@@ -42,18 +42,18 @@ def compare_classifiers(X, y, models=None, metrics=None, cv=3):
     if metrics is None:
         metrics = ['accuracy', 'confusion_matrix', 'precision', 'recall', 'f1', 'classification_report', 'pr_auc', 'roc_auc']
 
-
+    
     for model in models:
         model_name = model.__class__.__name__
         y_pred = cross_val_predict(model, X, y, cv=cv) # get predictions using cross_val_predict
         print(f'{model_name}:\n')
         for metric in metrics:
             if metric == 'f1':
-                score = f1_score(y, y_pred)
+                score = f1_score(y, y_pred, average=average)
             elif metric == 'precision':
-                score = precision_score(y, y_pred)
+                score = precision_score(y, y_pred, average=average)
             elif metric == 'recall':
-                score = recall_score(y, y_pred)
+                score = recall_score(y, y_pred, average=average)
             elif metric == 'classification_report':
                 score = classification_report(y, y_pred)
             elif metric == 'confusion_matrix':
@@ -61,10 +61,22 @@ def compare_classifiers(X, y, models=None, metrics=None, cv=3):
             elif metric == 'accuracy':
                 score = accuracy_score(y, y_pred)
             elif metric == 'roc_auc':
-                score = roc_auc_score(y, y_pred)
+                if len(set(y)) > 2:  # multiclass case
+                    score = roc_auc_score(y, y_pred, average=average, multi_class='ovr')
+                else:
+                    score = roc_auc_score(y, y_pred)
             elif metric == 'pr_auc':
-                precision, recall, _ = precision_recall_curve(y, y_pred)
-                score = auc(recall, precision)
+                if len(set(y)) > 2:  # multiclass case
+                    precision = dict()
+                    recall = dict()
+                    pr_auc_score = 0
+                    for i in range(len(set(y))):
+                        precision[i], recall[i], _ = precision_recall_curve(y == i, y_pred == i)
+                        pr_auc_score += auc(recall[i], precision[i])
+                    score = pr_auc_score / len(set(y))
+                else:
+                    precision, recall, _ = precision_recall_curve(y, y_pred)
+                    score = auc(recall, precision)
             print(f'\n{metric.title()}:\n {score}')
         print('\n')
 
@@ -105,7 +117,7 @@ def compare_regressors(X, y, models=None, cv=3):
 
 
 
-def features_to_drop_clf(model, X, y, cv=3, average='binary'):
+def features_to_drop_clf(model, X, y, cv=3, average='weighted'):
     """
     Drop each column one by one and see the effect on the model's performance.
     
