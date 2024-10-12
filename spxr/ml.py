@@ -5,6 +5,8 @@ from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, AdaBoostRegressor, ExtraTreesRegressor, HistGradientBoostingRegressor, RandomForestClassifier, ExtraTreesClassifier, GradientBoostingClassifier, AdaBoostClassifier, HistGradientBoostingClassifier 
 from xgboost import XGBRegressor, XGBClassifier
 from sklearn.svm import LinearSVC, SVC, LinearSVR, SVR
+from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
+from sklearn.naive_bayes import GaussianNB, MultinomialNB, BernoulliNB, ComplementNB, CategoricalNB
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import mean_squared_error, f1_score, precision_score, recall_score, classification_report, confusion_matrix, accuracy_score, roc_auc_score, precision_recall_curve, auc
 from sklearn.pipeline import make_pipeline
@@ -24,11 +26,13 @@ def compare_classifiers(X, y, models=None, metrics=None, cv=3):
     if models is None:
         # default list of classifiers
         models = [
+        MultinomialNB(),
         LogisticRegression(random_state=42),
         RidgeClassifier(random_state=42),
         SGDClassifier(random_state=42),
         XGBClassifier(random_state=42),
         DecisionTreeClassifier(random_state=42),
+        KNeighborsClassifier(),
         ExtraTreesClassifier(random_state=42),
         RandomForestClassifier(random_state=42),
         AdaBoostClassifier(random_state=42),
@@ -86,6 +90,7 @@ def compare_regressors(X, y, models=None, cv=3):
         SGDRegressor(random_state=42),
         XGBRegressor(random_state=42),
         DecisionTreeRegressor(random_state=42),
+        KNeighborsRegressor(),
         ExtraTreesRegressor(random_state=42),
         RandomForestRegressor(random_state=42),
         AdaBoostRegressor(random_state=42),
@@ -125,6 +130,7 @@ def features_to_drop_clf(model, X, y, cv=3, average='binary'):
     
     # Calculate the initial F1 score with all features
     initial_f1 = f1_score(y, cross_val_predict(model, X_np, y, cv=cv), average=average)
+    print(f'Initial F1 score: {initial_f1}')
     to_remove = []
     
     for i, col in enumerate(columns):
@@ -179,6 +185,7 @@ def features_to_drop_reg(model, X, y, cv=3):
     
     # Calculate the initial RMSE with all features
     initial_rmse = rmse(y, cross_val_predict(model, X_np, y, cv=cv))
+    print(f'Initial RMSE: {initial_rmse}')
     to_remove = []
     
     for i, col in enumerate(columns):
