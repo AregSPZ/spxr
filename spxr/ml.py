@@ -8,7 +8,7 @@ from sklearn.svm import LinearSVC, SVC, LinearSVR, SVR
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
 from sklearn.naive_bayes import GaussianNB, MultinomialNB, BernoulliNB, ComplementNB, CategoricalNB
 from sklearn.model_selection import cross_val_predict
-from sklearn.metrics import mean_squared_error, f1_score, precision_score, recall_score, classification_report, confusion_matrix, accuracy_score, roc_auc_score, precision_recall_curve, auc
+from sklearn.metrics import root_mean_squared_error, f1_score, precision_score, recall_score, classification_report, confusion_matrix, accuracy_score, roc_auc_score, precision_recall_curve, auc
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import PolynomialFeatures
 
@@ -21,7 +21,8 @@ def compare_classifiers(X, y, models=None, metrics=None, average='weighted', cv=
     y: target variable
     models: list of classifiers to evaluate
     metrics: list of metrics to evaluate the classifiers (strings)
-    cv: number of cross-validation folds"""
+    cv: number of cross-validation folds
+    average: the type of averaging performed on the data (default is 'weighted')"""
 
     if models is None:
         # default list of classifiers
@@ -84,11 +85,6 @@ def compare_classifiers(X, y, models=None, metrics=None, average='weighted', cv=
             print(f'\n{metric.title()}:\n {score}')
         print('\n')
 
-            
-def rmse(y_true, y_pred): # the metric we will use to evaluate the regressors
-    return np.sqrt(mean_squared_error(y_true, y_pred))
-
-
 def compare_regressors(X, y, models=None, cv=3):
 
     """Evaluate the performance of the most prominent Scikit-learn regressors using cross_val_predict and RMSE
@@ -116,7 +112,7 @@ def compare_regressors(X, y, models=None, cv=3):
     for model in models:
         model_name = model.__class__.__name__
         y_pred = cross_val_predict(model, X, y, cv=cv)
-        score = rmse(y, y_pred)
+        score = root_mean_squared_error(y, y_pred)
         print(f'{model_name}: RMSE = {score}')
 
 
@@ -200,7 +196,7 @@ def features_to_drop_reg(model, X, y, cv=3):
     columns = X.columns
     
     # Calculate the initial RMSE with all features
-    initial_rmse = rmse(y, cross_val_predict(model, X_np, y, cv=cv))
+    initial_rmse = root_mean_squared_error(y, cross_val_predict(model, X_np, y, cv=cv))
     print(f'Initial RMSE: {initial_rmse}')
     to_remove = []
     
@@ -212,7 +208,7 @@ def features_to_drop_reg(model, X, y, cv=3):
         y_pred = cross_val_predict(model, X_copy, y, cv=cv)
         
         # Calculate the RMSE without the current feature
-        current_rmse = rmse(y, y_pred)
+        current_rmse = root_mean_squared_error(y, y_pred)
         
         # If the RMSE without the column is greater than or equal to the initial RMSE, mark the column for deletion
         if current_rmse >= initial_rmse:
@@ -222,7 +218,7 @@ def features_to_drop_reg(model, X, y, cv=3):
     
     # Evaluate the model's performance after removing all identified features
     X_reduced = X.drop(columns=to_remove).to_numpy()
-    final_rmse = rmse(y, cross_val_predict(model, X_reduced, y, cv=cv))
+    final_rmse = root_mean_squared_error(y, cross_val_predict(model, X_reduced, y, cv=cv))
     print(f'Initial RMSE: {initial_rmse}')
     print(f'Final RMSE after dropping features: {final_rmse}')
     return to_remove
